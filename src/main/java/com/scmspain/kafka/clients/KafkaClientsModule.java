@@ -1,6 +1,7 @@
 package com.scmspain.kafka.clients;
 
 import com.google.inject.AbstractModule;
+import com.google.inject.Guice;
 import com.scmspain.kafka.clients.provider.ConsumerProvider;
 import com.scmspain.kafka.clients.provider.ProducerProvider;
 import org.apache.kafka.clients.consumer.KafkaConsumer;

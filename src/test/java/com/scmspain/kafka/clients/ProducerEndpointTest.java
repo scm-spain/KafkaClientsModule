@@ -10,7 +10,7 @@ import org.junit.Test;
 
 public class ProducerEndpointTest extends KaryonControllerTest {
   @Test
-  public void itShouldUpdateAnExistingCampaign() throws Exception {
+  public void itShouldProduceALotOfMessages() throws Exception {
 
     final String body = createHttpClient()
         .submit(
@@ -19,9 +19,29 @@ public class ProducerEndpointTest extends KaryonControllerTest {
         .doOnNext(response -> Assert.assertEquals(HttpResponseStatus.OK, response.getStatus()))
         .flatMap(HttpClientResponse::getContent)
         .map(this::asString)
-        .timeout(100, TimeUnit.SECONDS)
+        .timeout(50, TimeUnit.SECONDS)
         .toBlocking().single();
 
     Assert.assertEquals("forlayo", body);
   }
+
+  @Test
+  public void itShouldConsumerALotOfMessages() throws Exception {
+
+    final String body = createHttpClient()
+        .submit(
+            HttpClientRequest.createGet("/consumer_test")
+        )
+        .flatMap(HttpClientResponse::getContent)
+        .map(this::asString)
+        .timeout(100, TimeUnit.SECONDS)
+        .toBlocking().single();
+
+    Assert.assertEquals("", body);
+  }
+
+
+
+
+
 }

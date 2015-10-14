@@ -45,6 +45,12 @@ dependencies {
 
 }
 
+test{
+    testLogging{
+        showStandardStreams = true
+    }
+}
+
 tasks.withType(Test) {
     testLogging {
         exceptionFormat "full"
