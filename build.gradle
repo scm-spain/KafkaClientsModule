@@ -36,6 +36,7 @@ dependencies {
     compile 'com.netflix.archaius:archaius-core:0.6.3'
     compile 'io.reactivex:rxjava:1.0.+'
     compile 'com.google.inject:guice:3.0'    // This dependency is optional, but we are unable to say this in gradle in an easy way
+    compile 'org.reflections:reflections:0.9.9'
 
     testCompile 'junit:junit:4.12'
     testCompile 'com.scmspain.karyon:karyon-rest-router:1.2.+'

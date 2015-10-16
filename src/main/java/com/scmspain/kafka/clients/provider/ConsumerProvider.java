@@ -1,41 +1,37 @@
 package com.scmspain.kafka.clients.provider;
 
-import com.google.inject.Provider;
+import com.google.inject.Singleton;
 import com.netflix.config.ConfigurationManager;
-import java.util.Iterator;
 import java.util.Properties;
+import java.util.stream.StreamSupport;
+import kafka.consumer.Consumer;
+import kafka.consumer.ConsumerConfig;
+import kafka.javaapi.consumer.ConsumerConnector;
 import org.apache.commons.configuration.Configuration;
-import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+@Singleton
+public class ConsumerProvider {
 
-public class ConsumerProvider implements Provider<KafkaConsumer> {
+  private static final Logger LOGGER = LoggerFactory.getLogger(ProducerProvider.class);
+  private final ConsumerConnector consumer;
 
-  private final KafkaConsumer kafkaConsumer;
+  public ConsumerProvider(String groupId){
+    Configuration configuration = ConfigurationManager.getConfigInstance().subset("kafka.consumer");
+    configuration.addProperty("group.id", groupId);
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(ConsumerProvider.class);
+    Properties props = new Properties();
 
+    Iterable<String> iterable = configuration::getKeys;
+    StreamSupport.stream(iterable.spliterator(), false)
+        .forEach(key -> props.put(key, configuration.getProperty(key)));
 
-  public ConsumerProvider(){
-    this(ConfigurationManager.getConfigInstance().subset("kafka.consumer"));
-  }
-
-  public ConsumerProvider(Configuration configuration){
-    Properties kafkaConsumerProperties = new Properties();
-
-    for (Iterator<String> keys = configuration.getKeys(); keys.hasNext(); ){
-      String key = keys.next();
-      Object value = configuration.getProperty(key);
-      kafkaConsumerProperties.put(key, value);
-    }
-
-    LOGGER.info("Kafka consumer loaded properties: " + kafkaConsumerProperties.toString());
-    kafkaConsumer = new KafkaConsumer(kafkaConsumerProperties);
+    LOGGER.info("Kafka consumer loaded properties: " + props.toString());
+    consumer = Consumer.createJavaConsumerConnector(new ConsumerConfig(props));
 
   }
 
-  @Override
-  public KafkaConsumer get() {
-    return kafkaConsumer;
+  public ConsumerConnector get() {
+    return consumer;
   }
 }

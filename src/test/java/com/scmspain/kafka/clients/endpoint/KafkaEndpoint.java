@@ -1,7 +1,7 @@
 package com.scmspain.kafka.clients.endpoint;
 
 import com.google.inject.Inject;
-import com.scmspain.kafka.clients.consumer.SimpleHLConsumer;
+import com.scmspain.kafka.clients.consumer.ObservableConsumer;
 import io.netty.buffer.ByteBuf;
 import io.reactivex.netty.protocol.http.server.HttpServerRequest;
 import io.reactivex.netty.protocol.http.server.HttpServerResponse;
@@ -25,28 +25,14 @@ import scmspain.karyon.restrouter.annotation.Path;
 @Endpoint
 public class KafkaEndpoint {
 
-
-  private KafkaConsumer<String, String> consumer;
   private KafkaProducer<String, String> producer;
   private static final Logger LOGGER = LoggerFactory.getLogger(KafkaEndpoint.class);
 
   @Inject
-  public KafkaEndpoint(KafkaProducer producer, KafkaConsumer consumer) {
+  public KafkaEndpoint(KafkaProducer producer) {
     this.producer = producer;
-    this.consumer = consumer;
   }
 
-
-  @Path(value = "/consumer_test", method = HttpMethod.GET)
-  public Observable<Void> getMessageFromKafka(HttpServerResponse<ByteBuf> response) {
-
-
-    SimpleHLConsumer simpleHLConsumer = new SimpleHLConsumer("192.168.59.103:2181", "default", "middleware_campaign_manager_test");
-    simpleHLConsumer.testConsumer();
-
-    return Observable.empty();
-
-  }
 
   @Path(value = "/producer_test", method = HttpMethod.GET)
   public Observable<Void> postMessageToKafka(HttpServerRequest<ByteBuf> request,
@@ -54,7 +40,7 @@ public class KafkaEndpoint {
     String topic = "middleware_campaign_manager_test";
     String value ="Lalalla";
     ProducerRecord<String,String> producerRecord = new ProducerRecord<>(topic, value);
-    for (int i=0;i<1000;i++){
+    for (int i=0;i<10000;i++){
       try {
         producer.send(producerRecord).get();
       } catch (InterruptedException e) {
@@ -69,22 +55,5 @@ public class KafkaEndpoint {
     return response.writeStringAndFlush("forlayo");
   }
 
-  private Map<TopicPartition, Long> process(Map<String, ConsumerRecords<String,String>> records) {
-    Map<TopicPartition, Long> processedOffsets = new HashMap<TopicPartition, Long>();
-    for(Map.Entry<String, ConsumerRecords<String,String>> recordMetadata : records.entrySet()) {
-      List<ConsumerRecord<String, String>> recordsPerTopic = recordMetadata.getValue().records();
-      for(int i = 0;i < recordsPerTopic.size();i++) {
-        ConsumerRecord<String, String> record = recordsPerTopic.get(i);
-        System.out.println(record.toString());
-        try {
-          LOGGER.info(record.value());
-          processedOffsets.put(record.topicAndPartition(), record.offset());
-        } catch (Exception e) {
-          e.printStackTrace();
-        }
-      }
-    }
-    return processedOffsets;
-  }
 }
 
