@@ -22,17 +22,18 @@ public class ObservableConsumer {
 
   public Observable<MessageAndMetadata<byte[], byte[]>> toObservable() {
     Map<String, Integer> topicCount = new HashMap<>();
-    topicCount.put(topic, 1);
+    topicCount.put(topic, 4);
 
     Map<String, List<KafkaStream<byte[], byte[]>>> consumerStreams = consumer.createMessageStreams(topicCount);
     List<KafkaStream<byte[], byte[]>> streams = consumerStreams.get(topic);
     return Observable.from(streams)
         .flatMap(stream -> {
               return Observable.from((Iterable<MessageAndMetadata<byte[], byte[]>>) stream.toIterable())
-                  .doOnNext(messageAndMetadata -> System.out.println("Message from Single Topic: " + new String(messageAndMetadata.message())))
+                  .doOnNext(messageAndMetadata -> System.out.println(Thread.currentThread().getName()))
                   .subscribeOn(Schedulers.io());
             }
         )
+
         .doOnCompleted(() -> {
           if (consumer != null) {
             consumer.shutdown();

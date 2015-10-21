@@ -16,6 +16,6 @@ public class KafkaConsumer implements ConsumerInterface<MessageAndMetadata<byte[
   @Override
   @Topic(value = "middleware_campaign_manager_test", groupId = "forlayo")
   public Observable<MessageAndMetadata<byte[], byte[]>> consume(Observable<MessageAndMetadata<byte[], byte[]>> message) {
-    return message.doOnNext(data -> System.out.println(data.toString()+"***** from KafkaConsumer1"));
+    return message.doOnNext(data -> System.out.println(new String(data.message())+"***** from KafkaConsumer1"));
   }
 }

@@ -39,9 +39,10 @@ public class KafkaEndpoint {
                                              HttpServerResponse<ByteBuf> response){
     String topic = "middleware_campaign_manager_test";
     String value ="Lalalla";
-    ProducerRecord<String,String> producerRecord = new ProducerRecord<>(topic, value);
+    ProducerRecord<String,String> producerRecord;
     for (int i=0;i<10000;i++){
       try {
+        producerRecord = new ProducerRecord<>(topic, value+"_"+i);
         producer.send(producerRecord).get();
       } catch (InterruptedException e) {
         System.out.println(e.getMessage());
