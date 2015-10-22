@@ -10,4 +10,5 @@ import java.lang.annotation.Target;
 public @interface  Topic {
   String value();
   String groupId();
+  int streams() default 2;
 }

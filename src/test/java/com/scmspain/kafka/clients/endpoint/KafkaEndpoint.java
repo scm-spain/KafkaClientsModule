@@ -39,6 +39,7 @@ public class KafkaEndpoint {
                                              HttpServerResponse<ByteBuf> response){
     String topic = "middleware_campaign_manager_test";
     String value ="Lalalla";
+//    String key = "42";
     ProducerRecord<String,String> producerRecord;
     for (int i=0;i<10000;i++){
       try {

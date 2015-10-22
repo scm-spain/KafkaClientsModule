@@ -6,16 +6,16 @@ import kafka.message.MessageAndMetadata;
 import rx.Observable;
 
 @Consumer
-public class KafkaConsumer implements ConsumerInterface<MessageAndMetadata<byte[], byte[]>> {
+public class KafkaConsumer2 implements ConsumerInterface<MessageAndMetadata<byte[], byte[]>> {
 
 
-  public KafkaConsumer() {
+  public KafkaConsumer2() {
 
   }
 
   @Override
-  @Topic(value = "test", groupId = "forlayo", streams = 2)
+  @Topic(value = "test", groupId = "forlayo",streams = 1)
   public Observable<MessageAndMetadata<byte[], byte[]>> consume(Observable<MessageAndMetadata<byte[], byte[]>> message) {
-    return message.doOnNext(data -> System.out.println(new String(data.message())+"***** from KafkaConsumer1"));
+    return message.doOnNext(data -> System.out.println(new String(data.message())+"***** from KafkaConsumer2"));
   }
 }

@@ -13,16 +13,18 @@ public class ObservableConsumer {
 
   private final ConsumerConnector consumer;
   private final String topic;
+  private int streams;
 
-  public ObservableConsumer(ConsumerConnector consumer, String topic) {
+  public ObservableConsumer(ConsumerConnector consumer, String topic,int streams) {
 
     this.consumer = consumer;
     this.topic = topic;
+    this.streams = streams;
   }
 
   public Observable<MessageAndMetadata<byte[], byte[]>> toObservable() {
     Map<String, Integer> topicCount = new HashMap<>();
-    topicCount.put(topic, 4);
+    topicCount.put(topic, this.streams);
 
     Map<String, List<KafkaStream<byte[], byte[]>>> consumerStreams = consumer.createMessageStreams(topicCount);
     List<KafkaStream<byte[], byte[]>> streams = consumerStreams.get(topic);

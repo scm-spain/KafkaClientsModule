@@ -7,6 +7,8 @@ import com.netflix.config.ConfigurationManager;
 import com.scmspain.kafka.clients.annotation.Consumer;
 import com.scmspain.kafka.clients.annotation.Topic;
 import com.scmspain.kafka.clients.core.ResourceLoader;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Set;
 import kafka.javaapi.consumer.ConsumerConnector;
@@ -32,7 +34,6 @@ public class ConsumerProcessor implements ConsumerProcessorInterface{
     this.injector = injector;
     this.resourceLoader = resourceLoader;
     this.consumerConnectorBuilder = consumerConnectorBuilder;
-    this.process();
   }
 
   @Override
@@ -46,19 +47,40 @@ public class ConsumerProcessor implements ConsumerProcessorInterface{
                 Predicates.and(withModifier(Modifier.PUBLIC), withName(CONSUMER_METHOD), withAnnotation(Topic.class)),
                 withReturnType(Observable.class)
             ).stream())
-        .forEach(method -> {
-          String topic = method.getAnnotation(Topic.class).value();
-          String groupId = method.getAnnotation(Topic.class).groupId();
-          ConsumerConnector consumer = consumerConnectorBuilder.addGroupId(groupId).build();
-          ObservableConsumer rxConsumer = new ObservableConsumer(consumer, topic);
+        .map(method -> {
+          Topic topicAnnotation = method.getAnnotation(Topic.class);
+          String topic = topicAnnotation.value();
+          String groupId = topicAnnotation.groupId();
+          int streams = topicAnnotation.streams();
+          return new ConsumerExecutor(topic,groupId,streams,method);
+        })
+        .forEach(consumerExecutor -> {
+          ConsumerConnector consumer = consumerConnectorBuilder.addGroupId(consumerExecutor.groupId).build();
+          ObservableConsumer rxConsumer = new ObservableConsumer(consumer, consumerExecutor.topic, consumerExecutor.streams);
           try {
-            Observable resultObservable =(Observable) method.invoke(injector.getInstance(method.getDeclaringClass()), rxConsumer.toObservable());
+            Observable resultObservable = (Observable) consumerExecutor.method.invoke(injector.getInstance(consumerExecutor.method.getDeclaringClass()), rxConsumer.toObservable());
             resultObservable.subscribe();
 
           } catch (Exception e) {
-            throw new RuntimeException("Exception invoking method " + method.toString(), e);
+            throw new RuntimeException("Exception invoking method " + consumerExecutor.method.toString(), e);
           }
         })
     ;
   }
+
+  private class ConsumerExecutor {
+    public String topic;
+    public String groupId;
+    public int streams;
+    public Method method;
+
+    public ConsumerExecutor(String topic, String groupid, int streams, Method method) {
+      this.topic = topic;
+      this.groupId = groupid;
+      this.streams = streams;
+      this.method = method;
+    }
+  }
+
+
 }
