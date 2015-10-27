@@ -101,3 +101,14 @@ publishing {
         }
     }
 }
+
+scmVersion {
+    ignoreUncommittedChanges = false
+}
+
+
+allprojects {
+    //To force version from command line
+    //>gradle markNextVersion -Prelease.nextVersion=X.X.X
+    project.version = scmVersion.version
+}

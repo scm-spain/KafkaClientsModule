@@ -1,33 +1,25 @@
 package com.scmspain.kafka.clients.consumer;
 
-import com.google.common.base.Predicates;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.netflix.config.ConfigurationManager;
 import com.scmspain.kafka.clients.annotation.Consumer;
-import com.scmspain.kafka.clients.annotation.Topic;
 import com.scmspain.kafka.clients.core.ResourceLoader;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.util.Set;
 import kafka.javaapi.consumer.ConsumerConnector;
-import rx.Observable;
-
-import static org.reflections.ReflectionUtils.getAllMethods;
-import static org.reflections.ReflectionUtils.withAnnotation;
-import static org.reflections.ReflectionUtils.withModifier;
-import static org.reflections.ReflectionUtils.withName;
-import static org.reflections.ReflectionUtils.withReturnType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import rx.Subscriber;
+import rx.Subscription;
 
 public class ConsumerProcessor implements ConsumerProcessorInterface{
 
   private Injector injector;
   private ResourceLoader resourceLoader;
   private ConsumerConnectorBuilder consumerConnectorBuilder;
+  private static final Logger LOGGER = LoggerFactory.getLogger(ConsumerProcessor.class);
 
   public static final String BASE_PACKAGE_PROPERTY = "com.scmspain.karyon.kafka.consumer.packages";
-  private static final String CONSUMER_METHOD = "consume";
 
   @Inject
   public ConsumerProcessor(Injector injector, ResourceLoader resourceLoader, ConsumerConnectorBuilder consumerConnectorBuilder) {
@@ -42,27 +34,23 @@ public class ConsumerProcessor implements ConsumerProcessorInterface{
     Set<Class<?>> annotatedTypes = resourceLoader.find(basePackage, Consumer.class);
 
     annotatedTypes.stream()
-        .flatMap(klass ->
-            getAllMethods(klass,
-                Predicates.and(withModifier(Modifier.PUBLIC), withName(CONSUMER_METHOD), withAnnotation(Topic.class)),
-                withReturnType(Observable.class)
-            ).stream())
-        .map(method -> {
-          Topic topicAnnotation = method.getAnnotation(Topic.class);
-          String topic = topicAnnotation.value();
-          String groupId = topicAnnotation.groupId();
-          int streams = topicAnnotation.streams();
-          return new ConsumerExecutor(topic,groupId,streams,method);
+        .map(klass -> {
+          Consumer consumerAnnotation = klass.getAnnotation(Consumer.class);
+          String topic = consumerAnnotation.topic();
+          String groupId = consumerAnnotation.groupId();
+          int streams = consumerAnnotation.streams();
+          return new ConsumerExecutor(topic, groupId, streams,klass);
         })
         .forEach(consumerExecutor -> {
           ConsumerConnector consumer = consumerConnectorBuilder.addGroupId(consumerExecutor.groupId).build();
           ObservableConsumer rxConsumer = new ObservableConsumer(consumer, consumerExecutor.topic, consumerExecutor.streams);
           try {
-            Observable resultObservable = (Observable) consumerExecutor.method.invoke(injector.getInstance(consumerExecutor.method.getDeclaringClass()), rxConsumer.toObservable());
-            resultObservable.subscribe();
+            Subscriber subscriber = (Subscriber)injector.getInstance(consumerExecutor.klass);
+            Subscription subscription = rxConsumer.toObservable().subscribe(subscriber);
+            subscriber.add(subscription);
 
           } catch (Exception e) {
-            throw new RuntimeException("Exception invoking method " + consumerExecutor.method.toString(), e);
+            LOGGER.error(e.getMessage());
           }
         })
     ;
@@ -72,13 +60,13 @@ public class ConsumerProcessor implements ConsumerProcessorInterface{
     public String topic;
     public String groupId;
     public int streams;
-    public Method method;
+    public Class<?> klass;
 
-    public ConsumerExecutor(String topic, String groupid, int streams, Method method) {
+    public ConsumerExecutor(String topic, String groupid, int streams, Class<?> klass) {
       this.topic = topic;
       this.groupId = groupid;
       this.streams = streams;
-      this.method = method;
+      this.klass = klass;
     }
   }
 

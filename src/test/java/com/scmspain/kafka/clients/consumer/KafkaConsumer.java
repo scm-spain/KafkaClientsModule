@@ -1,21 +1,33 @@
 package com.scmspain.kafka.clients.consumer;
 
 import com.scmspain.kafka.clients.annotation.Consumer;
-import com.scmspain.kafka.clients.annotation.Topic;
 import kafka.message.MessageAndMetadata;
-import rx.Observable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import rx.Subscriber;
 
-@Consumer
-public class KafkaConsumer implements ConsumerInterface<MessageAndMetadata<byte[], byte[]>> {
+@Consumer(topic = "middleware_campaign_manager_test", groupId = "forlayo", streams = 2)
+public class KafkaConsumer extends Subscriber<MessageAndMetadata<byte[], byte[]>> {
 
+  private static final Logger LOGGER = LoggerFactory.getLogger(KafkaConsumer.class);
 
   public KafkaConsumer() {
 
   }
 
   @Override
-  @Topic(value = "test", groupId = "forlayo", streams = 2)
-  public Observable<MessageAndMetadata<byte[], byte[]>> consume(Observable<MessageAndMetadata<byte[], byte[]>> message) {
-    return message.doOnNext(data -> System.out.println(new String(data.message())+"***** from KafkaConsumer1"));
+  public void onCompleted() {
+    throw new UnsupportedOperationException("Not supported yet.");
+  }
+
+  @Override
+  public void onError(Throwable e) {
+    throw new UnsupportedOperationException("Not supported yet.");
+  }
+
+  @Override
+  public void onNext(MessageAndMetadata<byte[], byte[]> messageAndMetadata) {
+    System.out.println(new String(messageAndMetadata.message()) + "***** from KafkaConsumer1");
+    LOGGER.info(new String(messageAndMetadata.message()) + "***** from KafkaConsumer1");
   }
 }
