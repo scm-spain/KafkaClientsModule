@@ -9,7 +9,7 @@ import com.scmspain.kafka.clients.endpoint.KafkaEndpoint;
 import netflix.karyon.KaryonBootstrap;
 import netflix.karyon.archaius.ArchaiusBootstrap;
 import scmspain.karyon.restrouter.KaryonRestRouterModule;
-
+import scmspain.karyon.restrouter.serializer.Configuration;
 
 @ArchaiusBootstrap()
 @KaryonBootstrap(name = "AppServerTest")
@@ -32,6 +32,12 @@ public interface AppServerTest {
       int port = properties.getIntProperty("server.port", DEFAULT_PORT).get();
       int threads = properties.getIntProperty("server.threads", DEFAULT_THREADS).get();
       server().port(port).threadPoolSize(threads);
+
+      this.setConfiguration(Configuration.builder()
+              .defaultContentType("application/json")
+              .addSerializer(new JsonSerializer())
+              .build()
+      );
 
     }
 

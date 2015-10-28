@@ -33,7 +33,7 @@ dependencies {
     compile 'org.reflections:reflections:0.9.9'
 
     testCompile 'junit:junit:4.12'
-    testCompile 'com.scmspain.karyon:karyon-rest-router:1.2.+'
+    testCompile 'com.scmspain.karyon:karyon-rest-router:1.3.0'
     testCompile 'com.netflix.karyon:karyon2-core:2.7.1'
     testCompile 'com.netflix.karyon:karyon2-archaius:2.7.1'
     testCompile 'javax.ws.rs:jsr311-api:1.1.1'
