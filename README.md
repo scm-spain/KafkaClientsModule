@@ -51,8 +51,39 @@ The group.id property from the consumer is setted by the Consumer class with the
 Also with @Consumer you can set the topic name and the number of streams (number of threads to wakeup and consum messages)
 
 
+### 5- Building your own consumers
+```java
 
-### 5- Injecting producer in your classes and using it
+@Consumer(topic = "test_topic", groupId = "forlayo", streams = 2)
+public class KafkaConsumer extends Subscriber<MessageAndMetadata<byte[], byte[]>> {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(KafkaConsumer.class);
+
+  @Inject //Inject whatever you need!
+  public KafkaConsumer() {
+
+  }
+
+  @Override
+  public void onCompleted() {
+    throw new UnsupportedOperationException("Not supported yet.");
+  }
+
+  @Override
+  public void onError(Throwable e) {
+    throw new UnsupportedOperationException("Not supported yet.");
+  }
+
+  @Override
+  public void onNext(MessageAndMetadata<byte[], byte[]> messageAndMetadata) {
+    System.out.println(messageAndMetadata.message() + "***** from KafkaConsumer1");
+    LOGGER.info(new String(messageAndMetadata.message()) + "***** from KafkaConsumer1");
+  }
+}
+
+```
+
+### 6- Injecting producer in your classes and using it
 
 ```java
   private KafkaProducer<String, String> producer;
