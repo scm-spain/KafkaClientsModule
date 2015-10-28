@@ -5,7 +5,6 @@ import com.google.inject.Singleton;
 import com.netflix.config.DynamicPropertyFactory;
 import com.netflix.governator.annotations.Modules;
 import com.scmspain.kafka.clients.KafkaClientsModule;
-import com.scmspain.kafka.clients.consumer.KafkaConsumer;
 import com.scmspain.kafka.clients.endpoint.KafkaEndpoint;
 import netflix.karyon.KaryonBootstrap;
 import netflix.karyon.archaius.ArchaiusBootstrap;

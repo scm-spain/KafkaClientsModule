@@ -16,5 +16,5 @@ include 'api'
 include 'services:webservice'
 */
 
-rootProject.name = 'KafkaClientsModule'
+rootProject.name = 'karyon2-kafka'
 
