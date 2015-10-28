@@ -4,15 +4,9 @@ Karyon Guice Module for handle kafka consumers and producers in a friendly way
 
 # Getting Started
 
-Binaries and dependency information for Maven Central.
+Add the dependency in your build.gradle:
 
-Example of Gradle:
-
-```groovy
-dependencies {
-       compile 'com.scmspain.karyon:karyon2-kafka:0.1.0'   
-}
-```
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.scmspain.karyon/karyon2-kafka/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.scmspain.karyon/karyon2-kafka)
 
 
 ## Using the module in your server
