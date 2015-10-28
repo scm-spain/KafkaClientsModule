@@ -5,6 +5,7 @@ apply plugin: 'com.bmuschko.nexus'
 apply plugin: 'io.codearte.nexus-staging'
 apply plugin: 'pl.allegro.tech.build.axion-release'
 
+group = 'com.scmspain.karyon'
 sourceCompatibility = 1.8
 
 repositories {
