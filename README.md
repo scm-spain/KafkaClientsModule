@@ -20,7 +20,7 @@ Add the dependency in your build.gradle:
 })
 ```
 
-### 3- Setting package name to find consumers
+### 2- Setting package name to find consumers
 
 Set this property in your .properties files for example AppServer.properties
 
@@ -28,7 +28,7 @@ Set this property in your .properties files for example AppServer.properties
 com.scmspain.karyon.kafka.consumer.packages = com.scmspain.kafka.clients.consumer
 ```
 
-### 4- Configuring your consumers and producer with Archaius
+### 3- Configuring your consumers and producer with Archaius
 
 You have all properties from kafka consumer and producer from the official docs availables in your archaius .properties files with a prefix for consumer and producer:
  
@@ -51,7 +51,7 @@ The group.id property from the consumer is setted by the Consumer class with the
 Also with @Consumer you can set the topic name and the number of streams (number of threads to wakeup and consum messages)
 
 
-### 5- Building your own consumers
+### 4- Building your own consumers
 ```java
 
 @Consumer(topic = "test_topic", groupId = "forlayo", streams = 2)
@@ -83,7 +83,7 @@ public class KafkaConsumer extends Subscriber<MessageAndMetadata<byte[], byte[]>
 
 ```
 
-### 6- Injecting producer in your classes and using it
+### 5- Injecting producer in your classes and using it
 
 ```java
   private KafkaProducer<String, String> producer;
