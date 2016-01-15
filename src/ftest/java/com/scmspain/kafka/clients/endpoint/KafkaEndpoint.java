@@ -2,6 +2,7 @@ package com.scmspain.kafka.clients.endpoint;
 
 import com.google.inject.Inject;
 import com.scmspain.kafka.clients.consumer.ObservableConsumer;
+import com.scmspain.kafka.clients.producer.ObservableProducer;
 import io.netty.buffer.ByteBuf;
 import io.reactivex.netty.protocol.http.server.HttpServerRequest;
 import io.reactivex.netty.protocol.http.server.HttpServerResponse;
@@ -25,11 +26,11 @@ import scmspain.karyon.restrouter.annotation.Path;
 @Endpoint
 public class KafkaEndpoint {
 
-  private KafkaProducer<String, String> producer;
-  private static final Logger LOGGER = LoggerFactory.getLogger(KafkaEndpoint.class);
+  private ObservableProducer producer;
+  private final int MESSAGES = 1000;
 
   @Inject
-  public KafkaEndpoint(KafkaProducer producer) {
+  public KafkaEndpoint(ObservableProducer producer) {
     this.producer = producer;
   }
 
@@ -40,20 +41,16 @@ public class KafkaEndpoint {
     String topic = "middleware_campaign_manager_test";
     String value ="Lalalla";
     String key = "42";
+
     ProducerRecord<String,String> producerRecord;
-    for (int i=0;i<10000;i++){
-      try {
+
+    for (int i=0;i<MESSAGES;i++){
         producerRecord = new ProducerRecord<>(topic, value+"_"+i);
-        producer.send(producerRecord).get();
-      } catch (InterruptedException e) {
-        System.out.println(e.getMessage());
-      } catch (ExecutionException e) {
-        System.out.println(e.getMessage());
-      }
+        producer.send(producerRecord)
+            .doOnNext(recordMetadata -> System.out.println((String.format("Offset: %d partition: %d",recordMetadata.offset(),recordMetadata.partition()))))
+            .subscribe();
 
     }
-
-    producer.close();
     return response.writeStringAndFlush("forlayo");
   }
 
