@@ -27,7 +27,7 @@ import scmspain.karyon.restrouter.annotation.Path;
 public class KafkaEndpoint {
 
   private ObservableProducer producer;
-  private static final Logger LOGGER = LoggerFactory.getLogger(KafkaEndpoint.class);
+  private final int MESSAGES = 1000;
 
   @Inject
   public KafkaEndpoint(ObservableProducer producer) {
@@ -44,13 +44,13 @@ public class KafkaEndpoint {
 
     ProducerRecord<String,String> producerRecord;
 
-    for (int i=0;i<10000;i++){
+    for (int i=0;i<MESSAGES;i++){
         producerRecord = new ProducerRecord<>(topic, value+"_"+i);
-        producer.send(producerRecord);
+        producer.send(producerRecord)
+            .doOnNext(recordMetadata -> System.out.println((String.format("Offset: %d partition: %d",recordMetadata.offset(),recordMetadata.partition()))))
+            .subscribe();
 
     }
-
-
     return response.writeStringAndFlush("forlayo");
   }
 
