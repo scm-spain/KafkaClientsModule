@@ -86,34 +86,38 @@ public class KafkaConsumer extends Subscriber<MessageAndMetadata<byte[], byte[]>
 ### 5- Injecting producer in your classes and using it
 
 ```java
-  private KafkaProducer<String, String> producer;
+@Endpoint
+public class KafkaEndpoint {
+
+  private ObservableProducer producer;
+  private final int MESSAGES = 1000;
 
   @Inject
-  public ExampleConstructor(KafkaProducer producer) {
+  public KafkaEndpoint(ObservableProducer producer) {
     this.producer = producer;
   }
-  
-  
+
+
   @Path(value = "/producer_test", method = HttpMethod.GET)
   public Observable<Void> postMessageToKafka(HttpServerRequest<ByteBuf> request,
                                              HttpServerResponse<ByteBuf> response){
-    String topic = example_topic_name";
-    String value ="Message to be send!!";
-    String key = "42"; 
+    String topic = "middleware_campaign_manager_test";
+    String value ="Lalalla";
+    String key = "42";
+
     ProducerRecord<String,String> producerRecord;
-    for (int i=0;i<10000;i++){
-      try {
+
+    for (int i=0;i<MESSAGES;i++){
         producerRecord = new ProducerRecord<>(topic, value+"_"+i);
-        producer.send(producerRecord).get();
-      } catch (InterruptedException e) {
-        System.out.println(e.getMessage());
-      } catch (ExecutionException e) {
-        System.out.println(e.getMessage());
-      }
+        producer.send(producerRecord)
+            .doOnNext(recordMetadata -> System.out.println((String.format("Offset: %d partition: %d",recordMetadata.offset(),recordMetadata.partition()))))
+            .subscribe();
 
     }
-    producer.close();
     return response.writeStringAndFlush("forlayo");
+  }
+
+}
 
   
 
