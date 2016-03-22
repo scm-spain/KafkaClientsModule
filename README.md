@@ -82,6 +82,8 @@ public class KafkaConsumer extends Subscriber<MessageAndMetadata<byte[], byte[]>
 }
 
 ```
+Note, is recommended to implement Observer<MessageAndMetadata<byte[], byte[]>> instead of extends
+from Subscriber<MessageAndMetadata<byte[], byte[]>>, to be able use the Consumer Engine feature. 
 
 ### 5- Injecting producer in your classes and using it
 
@@ -118,8 +120,51 @@ public class KafkaEndpoint {
   }
 
 }
-
-  
-
 ```
 
+# Additional features
+
+## Shutdown hook
+
+You can bind ``ConsumerShutdownHook`` on your AppServer to commit all received messages from the consumer
+when the JVM is shutting down.
+
+```
+  bind(ConsumerShutdownHook.class).asEagerSingleton();
+```
+
+## Consumer Engine
+
+In guice context you can get a ConsumerEngine instance to start/stop your consumers. It will stop
+gracefully committing the messages already processed. 
+
+```java
+public class MyClass {
+  private ConsumerEngine consumerEngine;
+
+  @Inject
+  public MyClass(ConsumerEngine consumerEngine) {
+    this.consumerEngine = consumerEngine;
+  }
+
+  public void stopMyConsumer() {
+    consumerEngine.stop(MyConsumer.class);
+  }
+
+  public void stopAll() {
+    consumerEngine.stopAll();
+  }
+
+  public void startAll() {
+    consumerEngine.startAll();
+  }
+
+}
+
+```
+Beware, in order to use this feature, you will need to implement Observer<MessageAndMetadata<byte[], byte[]>> instead
+Subscriber<MessageAndMetadata<byte[], byte[]>>, because internally it will unsubscribe and subscribe 
+from kafka streams, to use the start/stop feature. Subscribers cannot be reused across subscriptions from observables.
+
+The start method will throw an exception in case you try to start an already unsubscribed subscriber, you use observer
+ it will work as expected.

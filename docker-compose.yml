@@ -1,0 +1,11 @@
+kafka:
+  image: spotify/kafka
+  ports:
+    - "2181:2181"
+    - "9092:9092"
+  environment:
+#ADVERTISED_HOST Must contain the Docker vm ip address, export KAFKA_ADVERTISED_HOST=$(docker-machine ip docker-vm)
+#(Note that docker-vm is the name of the docker machine name)
+#You can also hardcode your docker vm ip address here: ADVERTISED_HOST: 192.168.99.100
+    ADVERTISED_HOST: 192.168.99.100
+    ADVERTISED_PORT: 9092

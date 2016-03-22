@@ -5,6 +5,7 @@ import com.google.inject.Singleton;
 import com.netflix.config.DynamicPropertyFactory;
 import com.netflix.governator.annotations.Modules;
 import com.scmspain.kafka.clients.KafkaClientsModule;
+import com.scmspain.kafka.clients.consumer.ConsumerShutdownHook;
 import com.scmspain.kafka.clients.endpoint.KafkaEndpoint;
 import netflix.karyon.KaryonBootstrap;
 import netflix.karyon.archaius.ArchaiusBootstrap;
@@ -44,6 +45,8 @@ public interface AppServerTest {
     @Override
     public void configure() {
       bind(KafkaEndpoint.class).asEagerSingleton();
+      bind(ConsumerShutdownHook.class).asEagerSingleton();
+
       super.configure();
     }
   }

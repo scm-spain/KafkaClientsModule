@@ -15,7 +15,7 @@ public class KafkaClientsModule extends AbstractModule{
   protected void configure() {
     bind(KafkaProducer.class).toProvider(ProducerProvider.class).asEagerSingleton();
     bind(ObservableProducer.class).asEagerSingleton();
-    bind(ConsumerProcessorInterface.class).to(ConsumerProcessor.class).asEagerSingleton();
+    bind(ConsumerProcessor.class).asEagerSingleton();
     bind(ConsumerConnectorBuilder.class);
   }
 }

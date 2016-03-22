@@ -1,18 +1,24 @@
 package com.scmspain.kafka.clients.consumer;
 
+import com.google.common.base.Preconditions;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
+
 import com.netflix.config.ConfigurationManager;
 import com.scmspain.kafka.clients.annotation.Consumer;
 import com.scmspain.kafka.clients.core.ResourceLoader;
-import java.util.Set;
-import kafka.javaapi.consumer.ConsumerConnector;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import rx.Subscriber;
-import rx.Subscription;
 
-public class ConsumerProcessor implements ConsumerProcessorInterface{
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import kafka.message.MessageAndMetadata;
+import rx.Observer;
+
+public class ConsumerProcessor implements ConsumerProcessorInterface {
 
   private Injector injector;
   private ResourceLoader resourceLoader;
@@ -28,47 +34,31 @@ public class ConsumerProcessor implements ConsumerProcessorInterface{
     this.consumerConnectorBuilder = consumerConnectorBuilder;
   }
 
-  @Override
-  public void process() {
+  public List<ConsumerExecutor> getConsumers() {
     String basePackage = ConfigurationManager.getConfigInstance().getString(BASE_PACKAGE_PROPERTY);
     Set<Class<?>> annotatedTypes = resourceLoader.find(basePackage, Consumer.class);
 
-    annotatedTypes.stream()
+    Preconditions.checkArgument(
+        annotatedTypes.stream().allMatch(Observer.class::isAssignableFrom),
+        "All Consumer should implement Observer rx class");
+
+    return annotatedTypes.stream()
         .map(klass -> {
           Consumer consumerAnnotation = klass.getAnnotation(Consumer.class);
           String topic = consumerAnnotation.topic();
           String groupId = consumerAnnotation.groupId();
           int streams = consumerAnnotation.streams();
-          return new ConsumerExecutor(topic, groupId, streams,klass);
+
+          //noinspection unchecked
+          return new ConsumerExecutor(
+              topic,
+              groupId,
+              streams,
+              (Observer<MessageAndMetadata<byte[], byte[]>>)injector.getInstance(klass),
+              klass,
+              consumerConnectorBuilder
+          );
         })
-        .forEach(consumerExecutor -> {
-          ConsumerConnector consumer = consumerConnectorBuilder.addGroupId(consumerExecutor.groupId).build();
-          ObservableConsumer rxConsumer = new ObservableConsumer(consumer, consumerExecutor.topic, consumerExecutor.streams);
-          try {
-            Subscriber subscriber = (Subscriber)injector.getInstance(consumerExecutor.klass);
-            Subscription subscription = rxConsumer.toObservable().subscribe(subscriber);
-            subscriber.add(subscription);
-
-          } catch (Exception e) {
-            LOGGER.error(e.getMessage());
-          }
-        })
-    ;
+        .collect(Collectors.toList());
   }
-
-  private class ConsumerExecutor {
-    public String topic;
-    public String groupId;
-    public int streams;
-    public Class<?> klass;
-
-    public ConsumerExecutor(String topic, String groupid, int streams, Class<?> klass) {
-      this.topic = topic;
-      this.groupId = groupid;
-      this.streams = streams;
-      this.klass = klass;
-    }
-  }
-
-
 }
