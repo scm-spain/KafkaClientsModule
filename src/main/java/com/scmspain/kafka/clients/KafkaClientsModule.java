@@ -4,7 +4,6 @@ import com.google.inject.AbstractModule;
 import com.scmspain.kafka.clients.consumer.ConsumerConnectorBuilder;
 import com.scmspain.kafka.clients.consumer.ConsumerEngine;
 import com.scmspain.kafka.clients.consumer.ConsumerProcessor;
-import com.scmspain.kafka.clients.consumer.ConsumerProcessorInterface;
 import com.scmspain.kafka.clients.producer.ObservableProducer;
 import com.scmspain.kafka.clients.provider.ProducerProvider;
 import org.apache.kafka.clients.producer.KafkaProducer;

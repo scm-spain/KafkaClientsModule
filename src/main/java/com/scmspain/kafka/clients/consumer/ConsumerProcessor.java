@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 import kafka.message.MessageAndMetadata;
 import rx.Observer;
 
-public class ConsumerProcessor implements ConsumerProcessorInterface {
+public class ConsumerProcessor {
 
   private Injector injector;
   private ResourceLoader resourceLoader;

@@ -124,15 +124,6 @@ public class KafkaEndpoint {
 
 # Additional features
 
-## Shutdown hook
-
-You can bind ``ConsumerShutdownHook`` on your AppServer to commit all received messages from the consumer
-when the JVM is shutting down.
-
-```
-  bind(ConsumerShutdownHook.class).asEagerSingleton();
-```
-
 ## Consumer Engine
 
 In guice context you can get a ConsumerEngine instance to start/stop your consumers. It will stop
