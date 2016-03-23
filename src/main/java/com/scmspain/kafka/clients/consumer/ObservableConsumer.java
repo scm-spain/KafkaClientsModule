@@ -37,7 +37,6 @@ public class ObservableConsumer {
         )
         .doOnUnsubscribe(() -> {
           consumer.shutdown();
-          System.out.println("shutdown");
         });
 
   }

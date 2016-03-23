@@ -2,6 +2,7 @@ package com.scmspain.kafka.clients;
 
 import com.google.inject.AbstractModule;
 import com.scmspain.kafka.clients.consumer.ConsumerConnectorBuilder;
+import com.scmspain.kafka.clients.consumer.ConsumerEngine;
 import com.scmspain.kafka.clients.consumer.ConsumerProcessor;
 import com.scmspain.kafka.clients.consumer.ConsumerProcessorInterface;
 import com.scmspain.kafka.clients.producer.ObservableProducer;
@@ -17,5 +18,6 @@ public class KafkaClientsModule extends AbstractModule{
     bind(ObservableProducer.class).asEagerSingleton();
     bind(ConsumerProcessor.class).asEagerSingleton();
     bind(ConsumerConnectorBuilder.class);
+    bind(ConsumerEngine.class).asEagerSingleton();
   }
 }
