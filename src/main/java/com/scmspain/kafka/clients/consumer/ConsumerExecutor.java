@@ -39,7 +39,7 @@ class ConsumerExecutor {
     if (!isRunning()) {
       if(subscription != null && Subscriber.class.isAssignableFrom(consumerClass)) {
         throw new UnsupportedOperationException(
-            "Cannot resume a consumer as a Subscriber, don't use a Subscriber on Consumer if you want to use this feature, use Observer instead"
+            String.format("Cannot resume the consumer %s as a Subscriber, don't inherit from Subscriber on Consumer if you want to use this feature, use Observer instead", consumerClass.getName())
         );
       }
       ConsumerConnector consumerConnector = consumerConnectorBuilder.addGroupId(groupId).build();

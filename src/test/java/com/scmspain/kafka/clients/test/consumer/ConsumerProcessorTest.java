@@ -3,6 +3,7 @@ package com.scmspain.kafka.clients.test.consumer;
 import com.google.common.collect.Sets;
 import com.google.inject.Injector;
 
+import com.github.charithe.kafka.KafkaJunitRule;
 import com.scmspain.kafka.clients.annotation.Consumer;
 import com.scmspain.kafka.clients.consumer.ConsumerConnectorBuilder;
 import com.scmspain.kafka.clients.consumer.ConsumerEngine;
@@ -11,6 +12,7 @@ import com.scmspain.kafka.clients.core.ResourceLoader;
 
 import org.junit.Before;
 import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
 
@@ -31,9 +33,8 @@ import rx.Observer;
 import rx.Subscriber;
 import rx.observers.TestObserver;
 
-import static org.hamcrest.core.Is.is;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willReturn;
@@ -41,6 +42,8 @@ import static org.mockito.Matchers.any;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 public class ConsumerProcessorTest {
+  @Rule
+  public KafkaJunitRule kafkaRule = new KafkaJunitRule();
 
   @Mock
   private Injector injector;
@@ -51,18 +54,16 @@ public class ConsumerProcessorTest {
   @Mock
   private ConsumerConnector consumerConnector;
 
-//  @ClassRule
-//  public static KafkaJunitRule kafkaRule = new KafkaJunitRule();
-
   private ConsumerConfig consumerConfig;
 
   private void consumerConfig() {
     Properties props = new Properties();
-    props.put("zookeeper.connect", "192.168.99.100:2181");
-    props.put("group.id", "ConsumerDoOnNext-groupId");
-    props.put("zookeeper.session.timeout.ms", "400");
+    props.put("zookeeper.connect", kafkaRule.zookeeperConnectionString());
+    props.put("group.id", "kafka-junit-consumer");
+    props.put("zookeeper.session.timeout.ms", "3000");
     props.put("zookeeper.sync.time.ms", "200");
     props.put("auto.commit.interval.ms", "1000");
+    props.put("auto.offset.reset", "smallest");
 
     consumerConfig = new ConsumerConfig(props);
   }
@@ -115,7 +116,6 @@ public class ConsumerProcessorTest {
     ConsumerEngine consumerEngine = new ConsumerEngine(consumerProcessor);
 
     ConsumerDoOnNext consumer = new ConsumerDoOnNext(1, msg -> {
-      System.out.println("new String(msg) = " + new String(msg));
       consumerEngine.stopAll();
     });
     configureConsumer(consumer);
@@ -133,7 +133,9 @@ public class ConsumerProcessorTest {
     consumerEngine.start(ConsumerDoOnNext.class);
     assertTrue(consumer.awaitCount(5, TimeUnit.SECONDS));
 
-    assertThat(consumer.getOnNextEvents().size(), is(3));
+    assertThat(consumer.getOnNextEvents().stream().map(MessageAndMetadata::message))
+        .hasSize(3)
+        .contains("1".getBytes(), "2".getBytes(), "3".getBytes());
   }
 
   @Test(expected = UnsupportedOperationException.class)
@@ -160,15 +162,10 @@ public class ConsumerProcessorTest {
   }
 
   private void produceStreamOnTopic(String topic, String... messages) {
-    Properties props = new Properties();
-
-    props.put("metadata.broker.list", "192.168.99.100:9092");
-    props.put("producer.type", "sync");
-    props.put("request.required.acks", "1");
-
-    ProducerConfig conf = new ProducerConfig(props);
+    ProducerConfig conf = kafkaRule.producerConfigWithDefaultEncoder();
 
     Producer<byte[], byte[]> producer = new Producer<>(conf);
+
     for(String message: messages) {
       producer.send(new KeyedMessage<>(topic, "same_key".getBytes(), message.getBytes()));
     }
