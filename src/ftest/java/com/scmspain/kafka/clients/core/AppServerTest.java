@@ -44,6 +44,7 @@ public interface AppServerTest {
     @Override
     public void configure() {
       bind(KafkaEndpoint.class).asEagerSingleton();
+
       super.configure();
     }
   }
